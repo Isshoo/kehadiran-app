@@ -17,7 +17,7 @@ const AppNavigator = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthStack} />
-        ) : user.role === 'admin' ? (
+        ) : user && user.role === 'admin' ? (
           <Stack.Screen name="Admin" component={AdminStack} />
         ) : (
           <Stack.Screen name="Student" component={StudentStack} />

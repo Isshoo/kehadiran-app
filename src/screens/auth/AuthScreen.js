@@ -1,54 +1,40 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
-import { useDispatch } from 'react-redux';
-import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../../store/slices/authSlice';
 
 const AuthScreen = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+  const error = useSelector((state) => state.auth.error);
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Email dan password harus diisi');
+  const handleLogin = async () => {
+    if (!username || !password) {
+      Alert.alert('Error', 'Username dan password harus diisi');
       return;
     }
 
-    dispatch(loginStart());
-
-    // Mock authentication
-    setTimeout(() => {
-      if (email === 'admin@example.com' && password === 'admin123') {
-        dispatch(loginSuccess({
-          id: 1,
-          name: 'Admin',
-          email: 'admin@example.com',
-          role: 'admin'
-        }));
-      } else if (email === 'student@example.com' && password === 'student123') {
-        dispatch(loginSuccess({
-          id: 2,
-          name: 'Student',
-          email: 'student@example.com',
-          role: 'student'
-        }));
-      } else {
-        dispatch(loginFailure('Email atau password salah'));
-        Alert.alert('Error', 'Email atau password salah');
-      }
-    }, 1000);
+    try {
+      setLoading(true);
+      await dispatch(login(username, password));
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat login');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Kehadiran App</Text>
       <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
+        label="Username"
+        value={username}
+        onChangeText={setUsername}
         style={styles.input}
-        keyboardType="email-address"
         autoCapitalize="none"
       />
       <TextInput
@@ -58,9 +44,11 @@ const AuthScreen = () => {
         style={styles.input}
         secureTextEntry
       />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button
         mode="contained"
         onPress={handleLogin}
+        loading={loading}
         style={styles.button}
       >
         Login
@@ -86,6 +74,11 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+  },
+  error: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 
