@@ -14,6 +14,7 @@ import MeetingListScreen from '../screens/admin/MeetingListScreen';
 import CreateMeetingScreen from '../screens/admin/CreateMeetingScreen';
 import HandScanScreen from '../screens/admin/HandScanScreen';
 import ExportAttendanceScreen from '../screens/admin/ExportAttendanceScreen';
+import RegisterStudentScreen from '../screens/admin/RegisterStudentScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -101,6 +102,11 @@ const AdminStack = () => {
         name="ExportAttendance" 
         component={ExportAttendanceScreen} 
         options={{ title: 'Export Kehadiran' }}
+      />
+      <Stack.Screen 
+        name="RegisterStudent" 
+        component={RegisterStudentScreen} 
+        options={{ title: 'Daftar Mahasiswa Baru' }}
       />
     </Stack.Navigator>
   );

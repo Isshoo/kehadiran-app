@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
-import { Searchbar, Card, Title, Paragraph, Button, Text } from 'react-native-paper';
+import { Searchbar, Card, Title, Paragraph, Button, Text, List, FAB } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 
 const StudentListScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +21,8 @@ const StudentListScreen = () => {
       class: 'B',
     },
   ]);
+
+  const navigation = useNavigation();
 
   const filteredStudents = students.filter(
     (student) =>
@@ -60,6 +63,12 @@ const StudentListScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.list}
       />
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        onPress={() => navigation.navigate('RegisterStudent')}
+        label="Tambah Mahasiswa"
+      />
     </View>
   );
 };
@@ -77,6 +86,12 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: 16,
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
   },
 });
 
