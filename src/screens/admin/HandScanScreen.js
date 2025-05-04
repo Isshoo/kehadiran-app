@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { Camera } from 'expo-camera';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { showMessage } from 'react-native-flash-message';
+import api from '../../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HandScanScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { student, type, meetingId } = route.params;
   const [hasPermission, setHasPermission] = useState(null);
-  const [isScanning, setIsScanning] = useState(false);
-  const [cameraType, setCameraType] = useState('back');
+  const [scanned, setScanned] = useState(false);
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -18,46 +21,46 @@ const HandScanScreen = () => {
     })();
   }, []);
 
-  const handleScan = async () => {
-    if (cameraRef.current) {
+  const handleBarCodeScanned = async ({ data }) => {
+    if (!scanned) {
+      setScanned(true);
       try {
-        setIsScanning(true);
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 1,
-          base64: true,
-          exif: false
-        });
-        
-        // Simulasi proses scanning
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        Alert.alert(
-          'Scan Berhasil',
-          'Sidik jari berhasil diidentifikasi',
-          [{ text: 'OK' }]
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          throw new Error('No token found');
+        }
+
+        const response = await api.post(
+          '/attendance/scan',
+          {
+            meeting_id: meetingId,
+            student_id: student.id,
+            hand_data: data,
+            type: type
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-      } catch (error) {
-        Alert.alert('Error', 'Gagal mengambil foto');
-      } finally {
-        setIsScanning(false);
+
+        showMessage({
+          message: 'Success',
+          description: 'Absensi berhasil direkam',
+          type: 'success',
+        });
+
+        navigation.goBack();
+      } catch (err) {
+        showMessage({
+          message: 'Error',
+          description: err.message || 'Gagal merekam absensi',
+          type: 'danger',
+        });
+        setScanned(false);
       }
     }
   };
 
-  const toggleCameraType = () => {
-    setCameraType(
-      cameraType === 'back'
-        ? 'front'
-        : 'back'
-    );
-  };
-
   if (hasPermission === null) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
+    return <View style={styles.container}><Text>Requesting camera permission...</Text></View>;
   }
 
   if (hasPermission === false) {
@@ -68,7 +71,7 @@ const HandScanScreen = () => {
           style={styles.button}
           onPress={() => Camera.requestCameraPermissionsAsync()}
         >
-          <Text style={styles.buttonText}>Minta Izin Kamera</Text>
+          <Text style={styles.buttonText}>Beri Akses Kamera</Text>
         </TouchableOpacity>
       </View>
     );
@@ -77,34 +80,23 @@ const HandScanScreen = () => {
   return (
     <View style={styles.container}>
       <Camera
-        style={styles.camera}
-        type={cameraType}
         ref={cameraRef}
-        ratio="16:9"
+        style={styles.camera}
+        type={Camera.Constants.Type.back}
+        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
       >
         <View style={styles.overlay}>
           <View style={styles.scanArea} />
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.flipButton}
-              onPress={toggleCameraType}
-            >
-              <Ionicons name="camera-reverse" size={24} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.scanButton}
-              onPress={handleScan}
-              disabled={isScanning}
-            >
-              {isScanning ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Ionicons name="finger-print" size={24} color="white" />
-              )}
-            </TouchableOpacity>
-          </View>
         </View>
       </Camera>
+      {scanned && (
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setScanned(false)}
+        >
+          <Text style={styles.buttonText}>Scan Ulang</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -112,14 +104,16 @@ const HandScanScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   camera: {
     flex: 1,
+    width: '100%',
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -127,36 +121,18 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: 'white',
     backgroundColor: 'transparent',
   },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  flipButton: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 15,
-    borderRadius: 30,
-  },
-  scanButton: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 15,
-    borderRadius: 30,
-  },
   text: {
-    color: 'white',
     fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 5,
+    backgroundColor: '#2196F3',
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 16,
   },
   buttonText: {
     color: 'white',

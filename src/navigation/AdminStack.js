@@ -12,6 +12,7 @@ import CourseListScreen from '../screens/admin/CourseListScreen';
 import CourseFormScreen from '../screens/admin/CourseFormScreen';
 import CourseDetailScreen from '../screens/admin/CourseDetailScreen';
 import ClassDetailScreen from '../screens/admin/ClassDetailScreen';
+import MeetingDetailScreen from '../screens/admin/MeetingDetailScreen';
 import ScheduleScreen from '../screens/admin/ScheduleScreen';
 import MeetingListScreen from '../screens/admin/MeetingListScreen';
 import CreateMeetingScreen from '../screens/admin/CreateMeetingScreen';
@@ -130,6 +131,11 @@ const AdminStack = () => {
         name="ClassDetail" 
         component={ClassDetailScreen} 
         options={{ title: 'Detail Kelas' }}
+      />
+      <Stack.Screen 
+        name="MeetingDetail" 
+        component={MeetingDetailScreen} 
+        options={{ title: 'Detail Pertemuan' }}
       />
     </Stack.Navigator>
   );

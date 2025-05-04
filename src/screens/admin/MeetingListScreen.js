@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
-import { Card, Text, Button, IconButton, Portal, Modal, TextInput, HelperText } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { View, StyleSheet, FlatList, ScrollView, RefreshControl } from 'react-native';
+import { Card, Text, Button, IconButton, Portal, Modal, TextInput, HelperText, Title, Paragraph } from 'react-native-paper';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const MeetingListScreen = () => {
+  const route = useRoute();
   const navigation = useNavigation();
+  const { class: classData, course } = route.params;
   const [meetings, setMeetings] = useState([
     {
       id: 1,
@@ -41,6 +43,8 @@ const MeetingListScreen = () => {
     totalStudents: '',
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -129,8 +133,16 @@ const MeetingListScreen = () => {
     setMeetings(meetings.filter(m => m.id !== id));
   };
 
+  const handleMeetingPress = (meeting) => {
+    navigation.navigate('MeetingDetail', {
+      meeting,
+      class: classData,
+      course
+    });
+  };
+
   const renderMeetingItem = ({ item }) => (
-    <Card style={styles.card}>
+    <Card style={styles.card} onPress={() => handleMeetingPress(item)}>
       <Card.Content>
         <View style={styles.cardHeader}>
           <View>

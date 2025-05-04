@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList, ScrollView, RefreshControl } from 'react-native';
 import { Card, Title, Paragraph, Button, Text, FAB, ActivityIndicator, Divider, Portal, Modal, TextInput, Checkbox } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { showMessage } from 'react-native-flash-message';
@@ -9,15 +9,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tab Screens
 const MeetingsTab = ({ classData, course }) => {
+  const navigation = useNavigation();
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [visible, setVisible] = useState(false);
-  const [formData, setFormData] = useState({
-    date: '',
-    start_time: '',
-    end_time: '',
-  });
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (classData && course) {
@@ -37,9 +32,7 @@ const MeetingsTab = ({ classData, course }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMeetings(response.data.meetings || []);
-      setError(null);
     } catch (err) {
-      setError('Failed to fetch meetings');
       showMessage({
         message: 'Error',
         description: err.message || 'Failed to load meetings',
@@ -47,54 +40,22 @@ const MeetingsTab = ({ classData, course }) => {
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleAddMeeting = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const response = await api.post(
-        '/meetings/create',
-        {
-          class_id: classData.id,
-          date: formData.date,
-          start_time: formData.start_time,
-          end_time: formData.end_time,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      showMessage({
-        message: 'Success',
-        description: 'Pertemuan berhasil ditambahkan',
-        type: 'success',
-      });
-
-      setVisible(false);
-      fetchMeetings();
-    } catch (err) {
-      showMessage({
-        message: 'Error',
-        description: err.message || 'Gagal menambahkan pertemuan',
-        type: 'danger',
-      });
-    }
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchMeetings();
   };
 
-  const renderMeetingItem = ({ item }) => (
-    <Card style={styles.card} onPress={() => navigation.navigate('MeetingDetail', { meeting: item, class: classData, course })}>
-      <Card.Content>
-        <Title>Pertemuan {item.meeting_number}</Title>
-        <Paragraph>Tanggal: {item.date}</Paragraph>
-        <Paragraph>Waktu: {item.start_time} - {item.end_time}</Paragraph>
-        <Paragraph>Jumlah Hadir: {item.attendance_count || 0}</Paragraph>
-      </Card.Content>
-    </Card>
-  );
+  const handleMeetingPress = (meeting) => {
+    navigation.navigate('MeetingDetail', {
+      meeting,
+      class: classData,
+      course
+    });
+  };
 
   if (loading) {
     return (
@@ -104,66 +65,38 @@ const MeetingsTab = ({ classData, course }) => {
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-        <Button mode="contained" onPress={fetchMeetings}>
-          Retry
-        </Button>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <FlatList
-        data={meetings}
-        renderItem={renderMeetingItem}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.list}
-      />
-
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        onPress={() => setVisible(true)}
-        label="Tambah Pertemuan"
-      />
-
-      <Portal>
-        <Modal
-          visible={visible}
-          onDismiss={() => setVisible(false)}
-          contentContainerStyle={styles.modalContainer}
+      <View style={styles.actionContainer}>
+        <Button
+          mode="contained"
+          onPress={() => navigation.navigate('CreateMeeting', { class: classData, course })}
+          style={styles.addButton}
         >
-          <Text style={styles.modalTitle}>Tambah Pertemuan</Text>
-          <TextInput
-            label="Tanggal"
-            value={formData.date}
-            onChangeText={(text) => setFormData({ ...formData, date: text })}
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-          />
-          <TextInput
-            label="Jam Mulai"
-            value={formData.start_time}
-            onChangeText={(text) => setFormData({ ...formData, start_time: text })}
-            style={styles.input}
-            placeholder="HH:MM"
-          />
-          <TextInput
-            label="Jam Selesai"
-            value={formData.end_time}
-            onChangeText={(text) => setFormData({ ...formData, end_time: text })}
-            style={styles.input}
-            placeholder="HH:MM"
-          />
-          <Button mode="contained" onPress={handleAddMeeting} style={styles.modalButton}>
-            Tambah
-          </Button>
-        </Modal>
-      </Portal>
+          Tambah Pertemuan
+        </Button>
+      </View>
+
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {meetings.map((meeting) => (
+          <Card 
+            key={meeting.id} 
+            style={styles.card}
+            onPress={() => handleMeetingPress(meeting)}
+          >
+            <Card.Content>
+              <Title>Pertemuan {meeting.meeting_number}</Title>
+              <Paragraph>Tanggal: {meeting.date}</Paragraph>
+              <Paragraph>Waktu: {meeting.start_time} - {meeting.end_time}</Paragraph>
+              <Paragraph>Status: {meeting.status}</Paragraph>
+            </Card.Content>
+          </Card>
+        ))}
+      </ScrollView>
     </View>
   );
 };
@@ -406,7 +339,7 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     margin: 16,
-    marginBottom: 0,
+    marginBottom: 16,
   },
   centerContainer: {
     flex: 1,
@@ -452,6 +385,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
+  },
+  actionContainer: {
+    padding: 16,
+  },
+  addButton: {
+    marginBottom: 16,
   },
 });
 
