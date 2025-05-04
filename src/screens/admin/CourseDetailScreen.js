@@ -29,8 +29,13 @@ const CourseDetailScreen = () => {
       const response = await api.get(`/classes/by-course/${course.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setClasses(response.data.classes);
-      setError(null);
+
+      if (response.data.status === 'success') {
+        setClasses(response.data.data.classes);
+        setError(null);
+      } else {
+        throw new Error(response.data.message || 'Failed to load classes');
+      }
     } catch (err) {
       setError('Failed to fetch classes');
       showMessage({
@@ -56,13 +61,17 @@ const CourseDetailScreen = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showMessage({
-        message: 'Success',
-        description: 'Kelas berhasil ditambahkan',
-        type: 'success',
-      });
+      if (response.data.status === 'success') {
+        showMessage({
+          message: 'Success',
+          description: 'Kelas berhasil ditambahkan',
+          type: 'success',
+        });
 
-      fetchClasses(); // Refresh the list
+        fetchClasses(); // Refresh the list
+      } else {
+        throw new Error(response.data.message || 'Gagal menambahkan kelas');
+      }
     } catch (err) {
       showMessage({
         message: 'Error',
@@ -92,9 +101,25 @@ const CourseDetailScreen = () => {
   const renderClassItem = ({ item }) => (
     <Card style={styles.card} onPress={() => navigation.navigate('ClassDetail', { class: item, course })}>
       <Card.Content>
-        <Title>Kelas {item.name}</Title>
-        <Paragraph>Jumlah Mahasiswa: {item.student_count || 0}</Paragraph>
-        <Paragraph>Jumlah Pertemuan: {item.meeting_count || 0}</Paragraph>
+        <Title>{item.name}</Title>
+        <View style={styles.classInfo}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Kode Kelas</Text>
+            <Text style={styles.infoValue}>{item.id}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Jumlah Mahasiswa</Text>
+            <Text style={styles.infoValue}>{item.student_count}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Jumlah Pertemuan</Text>
+            <Text style={styles.infoValue}>{item.meeting_count}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Status</Text>
+            <Text style={[styles.infoValue, styles.activeStatus]}>Aktif</Text>
+          </View>
+        </View>
       </Card.Content>
     </Card>
   );
@@ -179,6 +204,23 @@ const styles = StyleSheet.create({
     color: 'red',
     marginBottom: 16,
     textAlign: 'center',
+  },
+  classInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  infoItem: {
+    flexDirection: 'column',
+  },
+  infoLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  infoValue: {
+    fontSize: 14,
+  },
+  activeStatus: {
+    color: 'green',
   },
 });
 
