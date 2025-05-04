@@ -20,6 +20,7 @@ import HandScanScreen from '../screens/admin/HandScanScreen';
 import ExportAttendanceScreen from '../screens/admin/ExportAttendanceScreen';
 import RegisterStudentScreen from '../screens/admin/RegisterStudentScreen';
 import HistoryScreen from '../screens/admin/HistoryScreen';
+import StudentDetailScreen from '../screens/admin/StudentDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -42,7 +43,7 @@ const AdminTabs = () => {
           } else if (route.name === 'ScheduleTab') {
             iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'HistoryTab') {
-            iconName = focused ? 'history' : 'history-outline';
+            iconName = focused ? 'history' : 'history';
           }
 
           return <IconButton icon={iconName} size={size} color={color} />;
@@ -113,6 +114,9 @@ const AdminStack = () => {
         component={RegisterStudentScreen} 
         options={{ title: 'Daftar Mahasiswa Baru' }}
       />
+      <Stack.Screen 
+      name="StudentDetail" component={StudentDetailScreen} />
+
       <Stack.Screen 
         name="AddCourse" 
         component={CourseFormScreen} 

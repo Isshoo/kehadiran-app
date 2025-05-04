@@ -6,6 +6,7 @@ import { showMessage } from 'react-native-flash-message';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import api from '../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
 // Tab Screens
 const MeetingsTab = ({ classData, course }) => {
@@ -13,12 +14,12 @@ const MeetingsTab = ({ classData, course }) => {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
+  const isFocused = useIsFocused();
   useEffect(() => {
-    if (classData && course) {
+    if (isFocused) {
       fetchMeetings();
     }
-  }, [classData, course]);
+  }, [isFocused]);
 
   const fetchMeetings = async () => {
     try {
@@ -57,20 +58,36 @@ const MeetingsTab = ({ classData, course }) => {
     });
   };
 
-  const renderMeetingItem = ({ item }) => (
-    <Card 
-      key={item.id} 
-      style={styles.card_meeting}
-      onPress={() => handleMeetingPress(item)}
-    >
-      <Card.Content>
-        <Title>Pertemuan {item.meeting_number}</Title>
-        <Paragraph>Tanggal: {item.date}</Paragraph>
-        <Paragraph>Waktu: {item.start_time} - {item.end_time}</Paragraph>
-        <Paragraph>Status: {item.status}</Paragraph>
-      </Card.Content>
-    </Card>
-  );
+  const renderMeetingItem = ({ item, index }) => {
+    const now = new Date();
+    const startDateTime = new Date(`${item.date}T${item.start_time}`);
+    const endDateTime = new Date(`${item.date}T${item.end_time}`);
+  
+    let status = '';
+    if (now < startDateTime) {
+      status = 'Belum dimulai';
+    } else if (now >= startDateTime && now <= endDateTime) {
+      status = 'Sedang berlangsung';
+    } else {
+      status = 'Sudah selesai';
+    }
+  
+    return (
+      <Card 
+        key={item.id} 
+        style={styles.card_meeting}
+        onPress={() => handleMeetingPress(item)}
+      >
+        <Card.Content>
+          <Title>Pertemuan {index + 1}</Title>
+          <Paragraph>Tanggal: {item.date}</Paragraph>
+          <Paragraph>Waktu: {item.start_time} - {item.end_time}</Paragraph>
+          <Paragraph>Status: {status}</Paragraph>
+        </Card.Content>
+      </Card>
+    );
+  };
+
 
   if (loading) {
     return (
@@ -95,7 +112,7 @@ const MeetingsTab = ({ classData, course }) => {
       <FAB
         style={styles.fab}
         icon="plus"
-        onPress={() => navigation.navigate('CreateMeeting', { class: classData, course })}
+        onPress={() => navigation.navigate('CreateMeeting', { class_: classData, course })}
         label="Tambah Pertemuan"
       />
     </View>
@@ -109,12 +126,13 @@ const StudentsTab = ({ classData, course }) => {
   const [visible, setVisible] = useState(false);
   const [allStudents, setAllStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (classData && course) {
+    if (isFocused) {
       fetchStudents();
     }
-  }, [classData, course]);
+  }, [isFocused]);
 
   useEffect(() => {
     if (classData && course) {

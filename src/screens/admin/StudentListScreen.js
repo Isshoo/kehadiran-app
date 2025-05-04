@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import { showMessage } from 'react-native-flash-message';
 import api from '../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
+
 
 const StudentListScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,9 +16,13 @@ const StudentListScreen = () => {
 
   const navigation = useNavigation();
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
-    fetchStudents();
-  }, []);
+    if (isFocused) {
+      fetchStudents();
+    }
+  }, [isFocused]);
 
   const fetchStudents = async () => {
     try {
@@ -60,10 +66,10 @@ const StudentListScreen = () => {
         <Paragraph>Phone: {item.phone}</Paragraph>
       </Card.Content>
       <Card.Actions>
-        <Button mode="outlined" onPress={() => {}}>
+        {/* <Button mode="outlined" onPress={() => {}}>
           Edit
-        </Button>
-        <Button mode="contained" onPress={() => {}}>
+        </Button> */}
+        <Button mode="contained" onPress={() => navigation.navigate('StudentDetail', { student: item })}>
           Detail
         </Button>
       </Card.Actions>

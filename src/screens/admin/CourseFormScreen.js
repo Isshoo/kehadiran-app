@@ -26,7 +26,7 @@ const CourseFormScreen = () => {
     if (isEdit) {
       setFormData({
         name: isEdit.name,
-        code: isEdit.code,
+        code: isEdit.course_id,
         academic_year: isEdit.academic_year || '',
         semester: isEdit.semester || 'ganjil',
       });

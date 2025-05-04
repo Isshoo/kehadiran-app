@@ -11,6 +11,8 @@ const DashboardScreen = () => {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [todayMeetings, setTodayMeetings] = useState([]);
+
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalCourses: 0,
@@ -55,9 +57,12 @@ const DashboardScreen = () => {
 
       // Get active meetings and present students for today
       const today = new Date().toISOString().split('T')[0];
-      const activeMeetings = meetingsResponse.data.data?.meetings?.filter(meeting => 
-        meeting.date === today && meeting.status === 'active'
-      ).length || 0;
+      const todayMeetingsData = meetingsResponse.data.data?.meetings?.filter(meeting => 
+        meeting.date === today
+        ) || [];
+
+      setTodayMeetings(todayMeetingsData);
+
 
       const presentStudents = attendanceResponse.data.data?.history?.filter(record => 
         record.meeting.date === today && record.status === 'present'
@@ -70,7 +75,6 @@ const DashboardScreen = () => {
         totalMeetings,
         totalAttendance,
         attendanceRate,
-        activeMeetings,
         presentStudents
       });
     } catch (err) {
@@ -95,11 +99,6 @@ const DashboardScreen = () => {
       title: 'Buat Pertemuan',
       icon: 'plus-circle',
       onPress: () => navigation.navigate('CreateMeeting'),
-    },
-    {
-      title: 'Scan Kehadiran',
-      icon: 'hand-pointing-right',
-      onPress: () => navigation.navigate('HandScan'),
     },
     {
       title: 'Export Data',
@@ -153,19 +152,24 @@ const DashboardScreen = () => {
 
       <Card style={styles.statsCard}>
         <Card.Content>
-          <Title>Statistik Hari Ini</Title>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Paragraph style={styles.statValue}>{stats.activeMeetings}</Paragraph>
-              <Paragraph style={styles.statLabel}>Pertemuan Aktif</Paragraph>
-            </View>
-            <View style={styles.statItem}>
-              <Paragraph style={styles.statValue}>{stats.presentStudents}</Paragraph>
-              <Paragraph style={styles.statLabel}>Mahasiswa Hadir</Paragraph>
-            </View>
-          </View>
+          <Title>Pertemuan Hari Ini</Title>
+          {todayMeetings.length === 0 ? (
+            <Paragraph>Tidak ada pertemuan hari ini.</Paragraph>
+          ) : (
+            todayMeetings.map((meeting, index) => (
+              <View key={index} style={styles.meetingItem}>
+                <Paragraph style={styles.meetingTitle}>
+                  {meeting.course?.name || 'Mata Kuliah'} - {meeting.classroom?.name || 'Kelas'}
+                </Paragraph>
+                <Paragraph style={styles.meetingDetail}>
+                  Jam: {meeting.time || 'N/A'} | Status: {meeting.status}
+                </Paragraph>
+              </View>
+            ))
+          )}
         </Card.Content>
       </Card>
+
 
       <Card style={styles.statsCard}>
         <Card.Content>
@@ -263,6 +267,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'gray',
   },
+  meetingItem: {
+    marginBottom: 12,
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  meetingTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  meetingDetail: {
+    fontSize: 14,
+    color: '#555',
+  },
+
 });
 
 export default DashboardScreen; 

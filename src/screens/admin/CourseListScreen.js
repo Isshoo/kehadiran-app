@@ -48,7 +48,7 @@ const CourseListScreen = () => {
   const filteredCourses = courses.filter(
     (course) =>
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.code.toLowerCase().includes(searchQuery.toLowerCase())
+      course.course_id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderCourseItem = ({ item }) => (
@@ -60,9 +60,9 @@ const CourseListScreen = () => {
         <Paragraph>Academic Year: {item.academic_year || '-'}</Paragraph>
       </Card.Content>
       <Card.Actions>
-        <Button mode="outlined" onPress={() => navigation.navigate('EditCourse', { course: item })}>
+        {/* <Button mode="outlined" onPress={() => navigation.navigate('EditCourse', { course: item })}>
           Edit
-        </Button>
+        </Button> */}
         <Button mode="contained" onPress={() => navigation.navigate('CourseDetail', { course: item })}>
           Detail
         </Button>

@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { showMessage } from 'react-native-flash-message';
 import api from '../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
 const CourseDetailScreen = () => {
   const navigation = useNavigation();
@@ -14,9 +15,13 @@ const CourseDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
-    fetchClasses();
-  }, []);
+    if (isFocused) {
+      fetchClasses();
+    }
+  }, [isFocused]);
 
   const fetchClasses = async () => {
     try {
