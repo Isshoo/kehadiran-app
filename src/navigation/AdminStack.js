@@ -9,6 +9,9 @@ import { logout } from '../store/slices/authSlice';
 import DashboardScreen from '../screens/admin/DashboardScreen';
 import StudentListScreen from '../screens/admin/StudentListScreen';
 import CourseListScreen from '../screens/admin/CourseListScreen';
+import CourseFormScreen from '../screens/admin/CourseFormScreen';
+import CourseDetailScreen from '../screens/admin/CourseDetailScreen';
+import ClassDetailScreen from '../screens/admin/ClassDetailScreen';
 import ScheduleScreen from '../screens/admin/ScheduleScreen';
 import MeetingListScreen from '../screens/admin/MeetingListScreen';
 import CreateMeetingScreen from '../screens/admin/CreateMeetingScreen';
@@ -107,6 +110,26 @@ const AdminStack = () => {
         name="RegisterStudent" 
         component={RegisterStudentScreen} 
         options={{ title: 'Daftar Mahasiswa Baru' }}
+      />
+      <Stack.Screen 
+        name="AddCourse" 
+        component={CourseFormScreen} 
+        options={{ title: 'Tambah Mata Kuliah' }}
+      />
+      <Stack.Screen 
+        name="EditCourse" 
+        component={CourseFormScreen} 
+        options={{ title: 'Edit Mata Kuliah' }}
+      />
+      <Stack.Screen 
+        name="CourseDetail" 
+        component={CourseDetailScreen} 
+        options={{ title: 'Detail Mata Kuliah' }}
+      />
+      <Stack.Screen 
+        name="ClassDetail" 
+        component={ClassDetailScreen} 
+        options={{ title: 'Detail Kelas' }}
       />
     </Stack.Navigator>
   );

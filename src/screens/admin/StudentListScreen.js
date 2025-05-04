@@ -1,28 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
-import { Searchbar, Card, Title, Paragraph, Button, Text, List, FAB } from 'react-native-paper';
+import { Searchbar, Card, Title, Paragraph, Button, Text, List, FAB, ActivityIndicator } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { showMessage } from 'react-native-flash-message';
+import api from '../../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const StudentListScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      nim: '12345678',
-      email: 'john@example.com',
-      class: 'A',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      nim: '87654321',
-      email: 'jane@example.com',
-      class: 'B',
-    },
-  ]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+      
+      const response = await api.get('/user', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setStudents(response.data.users);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch students');
+      showMessage({
+        message: 'Error',
+        description: err.message || 'Failed to load students',
+        type: 'danger',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredStudents = students.filter(
     (student) =>
@@ -36,7 +57,7 @@ const StudentListScreen = () => {
         <Title>{item.name}</Title>
         <Paragraph>NIM: {item.nim}</Paragraph>
         <Paragraph>Email: {item.email}</Paragraph>
-        <Paragraph>Kelas: {item.class}</Paragraph>
+        <Paragraph>Phone: {item.phone}</Paragraph>
       </Card.Content>
       <Card.Actions>
         <Button mode="outlined" onPress={() => {}}>
@@ -48,6 +69,25 @@ const StudentListScreen = () => {
       </Card.Actions>
     </Card>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button mode="contained" onPress={fetchStudents}>
+          Retry
+        </Button>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -78,6 +118,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
   searchBar: {
     marginBottom: 16,
   },
@@ -92,6 +138,11 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 16,
+    textAlign: 'center',
   },
 });
 
