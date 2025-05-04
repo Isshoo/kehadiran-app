@@ -57,6 +57,21 @@ const MeetingsTab = ({ classData, course }) => {
     });
   };
 
+  const renderMeetingItem = ({ item }) => (
+    <Card 
+      key={item.id} 
+      style={styles.card_meeting}
+      onPress={() => handleMeetingPress(item)}
+    >
+      <Card.Content>
+        <Title>Pertemuan {item.meeting_number}</Title>
+        <Paragraph>Tanggal: {item.date}</Paragraph>
+        <Paragraph>Waktu: {item.start_time} - {item.end_time}</Paragraph>
+        <Paragraph>Status: {item.status}</Paragraph>
+      </Card.Content>
+    </Card>
+  );
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -67,36 +82,22 @@ const MeetingsTab = ({ classData, course }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.actionContainer}>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('CreateMeeting', { class: classData, course })}
-          style={styles.addButton}
-        >
-          Tambah Pertemuan
-        </Button>
-      </View>
-
-      <ScrollView
+      <FlatList
+        data={meetings}
+        renderItem={renderMeetingItem}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-      >
-        {meetings.map((meeting) => (
-          <Card 
-            key={meeting.id} 
-            style={styles.card}
-            onPress={() => handleMeetingPress(meeting)}
-          >
-            <Card.Content>
-              <Title>Pertemuan {meeting.meeting_number}</Title>
-              <Paragraph>Tanggal: {meeting.date}</Paragraph>
-              <Paragraph>Waktu: {meeting.start_time} - {meeting.end_time}</Paragraph>
-              <Paragraph>Status: {meeting.status}</Paragraph>
-            </Card.Content>
-          </Card>
-        ))}
-      </ScrollView>
+      />
+
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        onPress={() => navigation.navigate('CreateMeeting', { class: classData, course })}
+        label="Tambah Pertemuan"
+      />
     </View>
   );
 };
@@ -351,6 +352,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
+    marginBottom: 16,
+  },
+  card_meeting: {
     marginBottom: 16,
   },
   fab: {
