@@ -19,6 +19,7 @@ import CreateMeetingScreen from '../screens/admin/CreateMeetingScreen';
 import HandScanScreen from '../screens/admin/HandScanScreen';
 import ExportAttendanceScreen from '../screens/admin/ExportAttendanceScreen';
 import RegisterStudentScreen from '../screens/admin/RegisterStudentScreen';
+import HistoryScreen from '../screens/admin/HistoryScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -40,8 +41,8 @@ const AdminTabs = () => {
             iconName = focused ? 'book-open-page-variant' : 'book-open-page-variant-outline';
           } else if (route.name === 'ScheduleTab') {
             iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'MeetingsTab') {
-            iconName = focused ? 'hand' : 'hand-outline';
+          } else if (route.name === 'HistoryTab') {
+            iconName = focused ? 'history' : 'history-outline';
           }
 
           return <IconButton icon={iconName} size={size} color={color} />;
@@ -76,9 +77,9 @@ const AdminTabs = () => {
         options={{ title: 'Jadwal' }}
       />
       <Tab.Screen 
-        name="MeetingsTab" 
-        component={MeetingListScreen} 
-        options={{ title: 'Pertemuan' }}
+        name="HistoryTab" 
+        component={HistoryScreen} 
+        options={{ title: 'Riwayat' }}
       />
     </Tab.Navigator>
   );
