@@ -50,11 +50,12 @@ const MeetingsTab = ({ classData, course }) => {
     fetchMeetings();
   };
 
-  const handleMeetingPress = (meeting) => {
+  const handleMeetingPress = (meeting, index) => {
     navigation.navigate('MeetingDetail', {
       meeting,
       class: classData,
-      course
+      course,
+      meetingIndex: index
     });
   };
 
@@ -76,7 +77,7 @@ const MeetingsTab = ({ classData, course }) => {
       <Card 
         key={item.id} 
         style={styles.card_meeting}
-        onPress={() => handleMeetingPress(item)}
+        onPress={() => handleMeetingPress(item, index)}
       >
         <Card.Content>
           <Title>Pertemuan {index + 1}</Title>

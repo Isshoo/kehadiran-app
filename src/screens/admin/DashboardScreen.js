@@ -62,6 +62,7 @@ const DashboardScreen = () => {
         ) || [];
 
       setTodayMeetings(todayMeetingsData);
+      console.log(todayMeetingsData);
 
 
       const presentStudents = attendanceResponse.data.data?.history?.filter(record => 
@@ -156,16 +157,31 @@ const DashboardScreen = () => {
           {todayMeetings.length === 0 ? (
             <Paragraph>Tidak ada pertemuan hari ini.</Paragraph>
           ) : (
-            todayMeetings.map((meeting, index) => (
-              <View key={index} style={styles.meetingItem}>
-                <Paragraph style={styles.meetingTitle}>
-                  {meeting.course?.name || 'Mata Kuliah'} - {meeting.classroom?.name || 'Kelas'}
-                </Paragraph>
-                <Paragraph style={styles.meetingDetail}>
-                  Jam: {meeting.time || 'N/A'} | Status: {meeting.status}
-                </Paragraph>
-              </View>
-            ))
+            todayMeetings.map((meeting, index) => {
+              const now = new Date();
+              const meetingStart = new Date(`${meeting.date}T${meeting.start_time}`);
+              const meetingEnd = new Date(`${meeting.date}T${meeting.end_time}`);
+
+              let status = 'Tidak Diketahui';
+              if (now < meetingStart) {
+                status = 'Belum Dimulai';
+              } else if (now >= meetingStart && now <= meetingEnd) {
+                status = 'Sedang Berlangsung';
+              } else if (now > meetingEnd) {
+                status = 'Selesai';
+              }
+            
+              return (
+                <View key={index} style={styles.meetingItem}>
+                  <Paragraph style={styles.meetingTitle}>
+                    {meeting.class?.name || 'Mata Kuliah'}
+                  </Paragraph>
+                  <Paragraph style={styles.meetingDetail}>
+                    Jam: {meeting.start_time || 'N/A'} - {meeting.end_time || 'N/A'} | Status: {status}
+                  </Paragraph>
+                </View>
+              );
+            })
           )}
         </Card.Content>
       </Card>

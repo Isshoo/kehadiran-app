@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const MeetingDetailScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { meeting, class: classData, course } = route.params;
+  const { meeting, class: classData, course, meetingIndex } = route.params;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [students, setStudents] = useState([]);
@@ -128,7 +128,7 @@ const MeetingDetailScreen = () => {
         <Card.Content>
           <Title>{course.name}</Title>
           <Paragraph>Kelas {classData.name}</Paragraph>
-          <Paragraph>Pertemuan {meeting.meeting_number}</Paragraph>
+          <Paragraph>Pertemuan {Number(meetingIndex) + 1}</Paragraph>
           <Paragraph>Tanggal: {meeting.date}</Paragraph>
           <Paragraph>Waktu: {meeting.start_time} - {meeting.end_time}</Paragraph>
         </Card.Content>
